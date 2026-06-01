@@ -8,7 +8,6 @@ namespace GLab6.Commands
         private readonly Action<object?> _execute;
         private readonly Func<object?, bool>? _canExecute;
 
-        // Konstruktor dla komend bezparametrowych
         public RelayCommand(Action execute, Func<bool>? canExecute = null)
         {
             if (execute == null) throw new ArgumentNullException(nameof(execute));
@@ -16,14 +15,12 @@ namespace GLab6.Commands
             _canExecute = canExecute != null ? _ => canExecute() : null;
         }
 
-        // Konstruktor dla komend z parametrem (np. usunięcie konkretnej piosenki)
         public RelayCommand(Action<object?> execute, Func<object?, bool>? canExecute = null)
         {
             _execute = execute ?? throw new ArgumentNullException(nameof(execute));
             _canExecute = canExecute;
         }
 
-        // Automatyczne odświeżanie stanu kontrolki (np. aktywacja/dezaktywacja przycisku)
         public event EventHandler? CanExecuteChanged
         {
             add => CommandManager.RequerySuggested += value;
@@ -40,7 +37,6 @@ namespace GLab6.Commands
             _execute(parameter);
         }
 
-        // Ręczne wymuszenie odświeżenia stanu komendy
         public void RaiseCanExecuteChanged()
         {
             CommandManager.InvalidateRequerySuggested();

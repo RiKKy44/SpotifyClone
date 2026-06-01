@@ -4,46 +4,74 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GLab6"
+        xmlns:vm="clr-namespace:GLab6.ViewModels"
+        xmlns:views="clr-namespace:GLab6.Views"
+        xmlns:conv="clr-namespace:GLab6.Converters"
         mc:Ignorable="d"
         Title="Musica" 
         Height="600" Width="1000" 
         MinHeight="480" MinWidth="800"
         Icon="/Resources/vinyl.ico">
 
+    <Window.Resources>
+        <conv:BytesToImageConverter x:Key="BytesToImageConverter"/>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+
+        <DataTemplate DataType="{x:Type vm:WelcomeViewModel}">
+            <views:WelcomeView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:SongListViewModel}">
+            <views:SongListView />
+        </DataTemplate>
+    </Window.Resources>
+
     <DockPanel>
         <Menu DockPanel.Dock="Top" Background="#F0F0F0">
             <MenuItem Header="Library">
-                <MenuItem Header="New..." Click="CreateLibrary"/>
-                <MenuItem Header="Open..." Click="OpenLibrary"/>
-                <MenuItem Header="Save" Click="SaveLibrary" InputGestureText="Ctrl+S"/>
+                <MenuItem Header="New..." Command="{Binding NewLibraryCommand}"/>
+                <MenuItem Header="Open..." Command="{Binding OpenLibraryCommand}"/>
+                <MenuItem Header="Save" Command="{Binding SaveLibraryCommand}" InputGestureText="Ctrl+S"/>
             </MenuItem>
             <MenuItem Header="Songs">
-                <MenuItem Header="Import..." Click="SongsImport"/>
-                <MenuItem Header="Edit..." Click="SongsEdit"/>
-                <MenuItem Header="Delete" Click="SongsDelete" InputGestureText="Del"/>
+                <MenuItem Header="Import..." IsEnabled="{Binding IsLibraryLoaded}"/>
+                <MenuItem Header="Edit..." IsEnabled="{Binding IsLibraryLoaded}"/>
+                <MenuItem Header="Delete" InputGestureText="Del" IsEnabled="{Binding IsLibraryLoaded}"/>
             </MenuItem>
             <MenuItem Header="Playlist">
-                <MenuItem Header="New..." Click="NewPlaylist"/>
+                <MenuItem Header="New..." Command="{Binding NewPlaylistCommand}"/>
             </MenuItem>
         </Menu>
 
-        <Grid DockPanel.Dock="Bottom" Height="56" Background="{StaticResource PrimaryBrush}">
+        <Grid DockPanel.Dock="Bottom" Height="56" Background="{StaticResource PrimaryBrush}"
+              Visibility="{Binding IsLibraryLoaded, Converter={StaticResource BoolToVis}}">
         </Grid>
 
         <Grid>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="220"/>
+                <ColumnDefinition>
+                    <ColumnDefinition.Style>
+                        <Style TargetType="ColumnDefinition">
+                            <Setter Property="Width" Value="220"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsLibraryLoaded}" Value="False">
+                                    <Setter Property="Width" Value="0"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ColumnDefinition.Style>
+                </ColumnDefinition>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <Grid Grid.Column="0" Name="Sidebar" Background="{StaticResource SidebarGradient}">
+            <Grid Grid.Column="0" Name="Sidebar" Background="{StaticResource SidebarGradient}"
+                  Visibility="{Binding IsLibraryLoaded, Converter={StaticResource BoolToVis}}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="50"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
                 <DockPanel Grid.Row="0" Margin="15,0">
-                    <Button DockPanel.Dock="Right" Content="+" Width="24" Height="24" VerticalAlignment="Center" Click="NewPlaylist" Background="Transparent" Foreground="White" BorderBrush="White" Cursor="Hand"/>
+                    <Button DockPanel.Dock="Right" Content="+" Width="24" Height="24" VerticalAlignment="Center" Command="{Binding NewPlaylistCommand}" Background="Transparent" Foreground="White" BorderBrush="White" Cursor="Hand"/>
                     <TextBlock Text="PLAYLISTS" Foreground="White" FontWeight="Bold" VerticalAlignment="Center" FontSize="14"/>
                 </DockPanel>
 
@@ -70,12 +98,16 @@
                             </Setter>
                         </Style>
                     </ListBox.ItemContainerStyle>
-
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal" Cursor="Hand">
                                 <Grid Width="36" Height="36">
                                     <Rectangle Fill="#555555" RadiusX="4" RadiusY="4"/>
+                                    <Border CornerRadius="4">
+                                        <Border.Background>
+                                            <ImageBrush ImageSource="{Binding CoverData, Converter={StaticResource BytesToImageConverter}}" Stretch="UniformToFill"/>
+                                        </Border.Background>
+                                    </Border>
                                 </Grid>
                                 <TextBlock Text="{Binding Name}" Foreground="White" VerticalAlignment="Center" Margin="10,0,0,0" FontSize="14"/>
                             </StackPanel>
@@ -84,21 +116,7 @@
                 </ListBox>
             </Grid>
 
-            <DataGrid Grid.Column="1" ItemsSource="{Binding Songs}" 
-                      AutoGenerateColumns="False" IsReadOnly="True" 
-                      SelectionMode="Single" SelectionUnit="FullRow"
-                      CanUserAddRows="False" HeadersVisibility="Column"
-                      GridLinesVisibility="None" RowHeight="35"
-                      AlternatingRowBackground="#F9F9F9" BorderThickness="1,0,0,0" BorderBrush="#E0E0E0">
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="#" Binding="{Binding Id}" Width="40" ElementStyle="{StaticResource {x:Type TextBlock}}"/>
-                    <DataGridTextColumn Header="Title" Binding="{Binding Title}" Width="2*"/>
-                    <DataGridTextColumn Header="Artist" Binding="{Binding Artist}" Width="2*"/>
-                    <DataGridTextColumn Header="Album" Binding="{Binding Album}" Width="2*"/>
-                    <DataGridTextColumn Header="Year" Binding="{Binding Year}" Width="80"/>
-                    <DataGridTextColumn Header="Duration" Binding="{Binding Duration, StringFormat={}{0:m\\:ss}}" Width="80"/>
-                </DataGrid.Columns>
-            </DataGrid>
+            <ContentControl Grid.Column="1" Content="{Binding CurrentPage}" />
         </Grid>
     </DockPanel>
 </Window>

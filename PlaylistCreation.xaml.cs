@@ -4,11 +4,13 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-
+using System.IO;
 namespace GLab6
 {
     public partial class PlaylistCreation : Window
-    {        public string PlaylistName => PlaylistNameTextBox.Text;
+    {        
+        public string PlaylistName => PlaylistNameTextBox.Text;
+        public byte[]? CoverData { get; private set; }
         public ImageSource CoverImage => servicePhoto.Source;
 
         public PlaylistCreation()
@@ -26,6 +28,8 @@ namespace GLab6
 
             if (op.ShowDialog() == true)
             {
+                CoverData = File.ReadAllBytes(op.FileName);
+
                 servicePhoto.Source = new BitmapImage(new Uri(op.FileName));
             }
         }
