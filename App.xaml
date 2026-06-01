@@ -1,0 +1,20 @@
+﻿<Application x:Class="GLab6.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:GLab6"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <Color x:Key="PrimaryColor">#2A2A35</Color>
+        <Color x:Key="DarkPrimaryColor">#16161D</Color>
+        <Color x:Key="AccentColor">#E91E63</Color>
+
+        <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}"/>
+        <SolidColorBrush x:Key="DarkPrimaryBrush" Color="{StaticResource DarkPrimaryColor}"/>
+        <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}"/>
+
+        <LinearGradientBrush x:Key="SidebarGradient" StartPoint="0.5,0" EndPoint="0.5,1">
+            <GradientStop Color="{StaticResource PrimaryColor}" Offset="0"/>
+            <GradientStop Color="{StaticResource DarkPrimaryColor}" Offset="1"/>
+        </LinearGradientBrush>
+    </Application.Resources>
+</Application>
