@@ -3,6 +3,10 @@ using System.Windows.Input;
 using GLab6.Commands;
 using GLab6.Models;
 using GLab6.Services;
+using System.Linq;
+using System.IO;
+using Microsoft.Win32;
+using GLab6.Views;
 
 namespace GLab6.ViewModels
 {
@@ -13,10 +17,27 @@ namespace GLab6.ViewModels
         private ObservableCollection<Song> _songs = new ObservableCollection<Song>();
         private ObservableCollection<Playlist> _playlists = new ObservableCollection<Playlist>();
 
+        private Playlist _selectedPlaylist;
+        
+        public ICommand ImportSongsCommand { get; }
+
         public BaseViewModel CurrentPage
         {
             get => _currentPage;
             set => SetProperty(ref _currentPage, value);
+        }
+
+        public Playlist SelectedPlaylist
+        {
+            get => _selectedPlaylist;
+            set
+            {
+                if (_selectedPlaylist != null)
+                {
+                    _currentPage = new SongListViewModel(_selectedPlaylist);
+                }
+                SetProperty(ref _selectedPlaylist, value);
+            }
         }
 
         public bool IsLibraryLoaded
@@ -51,6 +72,8 @@ namespace GLab6.ViewModels
             OpenLibraryCommand = new RelayCommand(() => CurrentPage = new WelcomeViewModel(OnLibraryOpened, OnLibraryCreated));
             SaveLibraryCommand = new RelayCommand(SaveLibrary, () => IsLibraryLoaded);
             NewPlaylistCommand = new RelayCommand(NewPlaylist, () => IsLibraryLoaded);
+
+            ImportSongsCommand = new RelayCommand(ImportSongs, () => IsLibraryLoaded);
         }
 
         private void OnLibraryCreated(string filePath)
@@ -95,6 +118,50 @@ namespace GLab6.ViewModels
                     Name = win2.PlaylistName,
                     CoverData = win2.CoverData 
                 });
+                SaveLibrary();
+            }
+        }
+        private void ImportSongs()
+        {
+            OpenFileDialog ofd = new OpenFileDialog
+            {
+                Multiselect = true,
+                Filter = "Audio Files|*.mp3;*.wav;*.flac;*.aac;*.ogg|All Files|*.*",
+                Title = "Choose songs to import"
+            };
+
+            if(ofd.ShowDialog() == true)
+            {
+                foreach(var file in ofd.FileNames)
+                {
+                    try
+                    {
+                        var tfile = TagLib.File.Create(file);
+
+                        var song = new Song
+                        {
+                            Id = Songs.Count > 0 ? Songs.Max(s => s.Id) + 1 : 1,
+                            Title = string.IsNullOrWhiteSpace(tfile.Tag.Title) ? Path.GetFileNameWithoutExtension(file) : tfile.Tag.Title,
+                            Artist = tfile.Tag.FirstPerformer ?? "Unknown Artist",
+                            Album = tfile.Tag.Album ?? "Unknown Album",
+                            Genre = tfile.Tag.FirstGenre ?? "Unknown Genre",
+                            Year = (int)tfile.Tag.Year,
+                            Duration = tfile.Properties.Duration,
+                            AudioData = File.ReadAllBytes(file)
+                        };
+
+                        if(tfile.Tag.Pictures.Length > 0)
+                        {
+                            song.CoverData = tfile.Tag.Pictures[0].Data.Data;
+                        }
+                        Songs.Add(song);
+                    }
+                    catch(Exception ex)
+                    {
+
+                    }
+
+                }
                 SaveLibrary();
             }
         }

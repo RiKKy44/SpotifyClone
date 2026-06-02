@@ -33,7 +33,7 @@
                 <MenuItem Header="Save" Command="{Binding SaveLibraryCommand}" InputGestureText="Ctrl+S"/>
             </MenuItem>
             <MenuItem Header="Songs">
-                <MenuItem Header="Import..." IsEnabled="{Binding IsLibraryLoaded}"/>
+                <MenuItem Header="Import..." Command="{Binding ImportSongsCommand}" IsEnabled="{Binding IsLibraryLoaded}"/>
                 <MenuItem Header="Edit..." IsEnabled="{Binding IsLibraryLoaded}"/>
                 <MenuItem Header="Delete" InputGestureText="Del" IsEnabled="{Binding IsLibraryLoaded}"/>
             </MenuItem>

@@ -22,7 +22,10 @@ namespace GLab6.Services
         {
             if (string.IsNullOrEmpty(_currentFilePath)) return;
 
-            var options = new JsonSerializerOptions { WriteIndented = true };
+            var options = new JsonSerializerOptions 
+            { 
+                WriteIndented = true 
+            };
             string json = JsonSerializer.Serialize(library, options);
             File.WriteAllText(_currentFilePath, json);
         }
