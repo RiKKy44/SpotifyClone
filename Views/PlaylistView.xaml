@@ -35,18 +35,36 @@
                 <TextBlock Text="{Binding Name}" FontSize="28" FontWeight="Bold" Foreground="#2A2A35"/>
                 <StackPanel Orientation="Horizontal" Margin="0,5,0,10">
                     <TextBlock Text="{Binding SongCount}" FontSize="14" Foreground="#666"/>
-                    <TextBlock Text=" Songs" FontSize="14" Foreground="#666"/>
+                    <TextBlock Text=" songs" FontSize="14" Foreground="#666"/>
                 </StackPanel>
                 <Button Content="▶ Play" Command="{Binding PlayCommand}" HorizontalAlignment="Left" Padding="20,6" Background="#E91E63" Foreground="White" FontWeight="Bold" BorderBrush="Transparent" Cursor="Hand"/>
             </StackPanel>
         </Grid>
 
         <DataGrid Grid.Row="1" ItemsSource="{Binding PlaylistSongs}" 
+                  SelectedItem="{Binding SelectedSong, UpdateSourceTrigger=PropertyChanged}"
                   AutoGenerateColumns="False" IsReadOnly="True" 
                   SelectionMode="Single" SelectionUnit="FullRow"
                   CanUserAddRows="False" HeadersVisibility="Column"
                   GridLinesVisibility="None" RowHeight="45"
                   AlternatingRowBackground="#F9F9F9">
+
+            <DataGrid.RowStyle>
+                <Style TargetType="DataGridRow">
+                    <Setter Property="Tag" Value="{Binding DataContext, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+                    <Setter Property="ContextMenu">
+                        <Setter.Value>
+                            <ContextMenu>
+                                <MenuItem Header="Remove from Playlist" Command="{Binding PlacementTarget.Tag.RemoveSongCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                <Separator/>
+                                <MenuItem Header="Move Up" Command="{Binding PlacementTarget.Tag.MoveUpCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                <MenuItem Header="Move Down" Command="{Binding PlacementTarget.Tag.MoveDownCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                            </ContextMenu>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </DataGrid.RowStyle>
+
             <DataGrid.Columns>
                 <DataGridTemplateColumn Header="" Width="50">
                     <DataGridTemplateColumn.CellTemplate>

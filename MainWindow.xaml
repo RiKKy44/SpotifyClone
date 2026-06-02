@@ -37,8 +37,6 @@
             </MenuItem>
             <MenuItem Header="Songs">
                 <MenuItem Header="Import..." Command="{Binding ImportSongsCommand}" IsEnabled="{Binding IsLibraryLoaded}"/>
-                <MenuItem Header="Edit..." IsEnabled="{Binding IsLibraryLoaded}"/>
-                <MenuItem Header="Delete" InputGestureText="Del" IsEnabled="{Binding IsLibraryLoaded}"/>
             </MenuItem>
             <MenuItem Header="Playlist">
                 <MenuItem Header="New..." Command="{Binding NewPlaylistCommand}"/>
@@ -70,20 +68,54 @@
                   Visibility="{Binding IsLibraryLoaded, Converter={StaticResource BoolToVis}}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="50"/>
+                    <RowDefinition Height="50"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <DockPanel Grid.Row="0" Margin="15,0">
+                <Button Grid.Row="0" Command="{Binding ShowAllSongsCommand}" Background="Transparent" BorderThickness="0" Foreground="White" Cursor="Hand">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}" Padding="15,0">
+                                <ContentPresenter VerticalAlignment="Center"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#33FFFFFF"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="♫" FontSize="18" Margin="0,0,10,0" VerticalAlignment="Center" Foreground="{StaticResource AccentBrush}"/>
+                        <TextBlock Text="ALL SONGS" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <DockPanel Grid.Row="1" Margin="15,0">
                     <Button DockPanel.Dock="Right" Content="+" Width="24" Height="24" VerticalAlignment="Center" Command="{Binding NewPlaylistCommand}" Background="Transparent" Foreground="White" BorderBrush="White" Cursor="Hand"/>
                     <TextBlock Text="PLAYLISTS" Foreground="White" FontWeight="Bold" VerticalAlignment="Center" FontSize="14"/>
                 </DockPanel>
 
-                <ListBox Grid.Row="1" ItemsSource="{Binding Playlists}" 
-                    SelectedItem="{Binding SelectedPlaylist, UpdateSourceTrigger=PropertyChanged}"
-                    Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <ListBox Grid.Row="2" ItemsSource="{Binding Playlists}" 
+                         SelectedItem="{Binding SelectedPlaylist, UpdateSourceTrigger=PropertyChanged}"
+                         Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                     <ListBox.ItemContainerStyle>
                         <Style TargetType="ListBoxItem">
                             <Setter Property="Padding" Value="10,5"/>
+
+                            <Setter Property="Tag" Value="{Binding DataContext, RelativeSource={RelativeSource AncestorType=Window}}"/>
+
+                            <Setter Property="ContextMenu">
+                                <Setter.Value>
+                                    <ContextMenu>
+                                        <MenuItem Header="Show" Command="{Binding PlacementTarget.Tag.ShowPlaylistCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                        <Separator/>
+                                        <MenuItem Header="Rename..." Command="{Binding PlacementTarget.Tag.RenamePlaylistCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                        <MenuItem Header="Delete" Command="{Binding PlacementTarget.Tag.DeletePlaylistCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                    </ContextMenu>
+                                </Setter.Value>
+                            </Setter>
+
                             <Setter Property="Template">
                                 <Setter.Value>
                                     <ControlTemplate TargetType="ListBoxItem">

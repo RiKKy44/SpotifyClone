@@ -6,7 +6,6 @@
              xmlns:conv="clr-namespace:GLab6.Converters"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="700">
-
     <UserControl.Resources>
         <conv:BytesToImageConverter x:Key="BytesToImageConverter"/>
     </UserControl.Resources>
@@ -23,18 +22,48 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-
             <TextBlock Text="Search:" VerticalAlignment="Center" Margin="0,0,10,0" FontWeight="Bold"/>
             <TextBox Grid.Column="1" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Padding="5" VerticalContentAlignment="Center"/>
             <Button Grid.Column="2" Content="✕" Command="{Binding ClearSearchCommand}" Width="30" Margin="5,0,0,0" Background="#E0E0E0" BorderBrush="Transparent"/>
         </Grid>
 
         <DataGrid Grid.Row="1" ItemsSource="{Binding FilteredSongs}" 
+                  SelectedItem="{Binding SelectedSong, UpdateSourceTrigger=PropertyChanged}"
                   AutoGenerateColumns="False" IsReadOnly="True" 
                   SelectionMode="Single" SelectionUnit="FullRow"
                   CanUserAddRows="False" HeadersVisibility="Column"
                   GridLinesVisibility="None" RowHeight="45"
                   AlternatingRowBackground="#F9F9F9">
+
+            <DataGrid.RowStyle>
+                <Style TargetType="DataGridRow">
+                    <Setter Property="Tag" Value="{Binding DataContext, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                    <Setter Property="ContextMenu">
+                        <Setter.Value>
+                            <ContextMenu>
+                                <MenuItem Header="Add to Playlist" ItemsSource="{Binding PlacementTarget.Tag.Playlists, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+                                    <MenuItem.ItemContainerStyle>
+                                        <Style TargetType="MenuItem">
+                                            <Setter Property="Header" Value="{Binding Name}"/>
+                                            <Setter Property="Command" Value="{Binding PlacementTarget.Tag.AddSongToPlaylistCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                            <Setter Property="CommandParameter" Value="{Binding}"/>
+                                        </Style>
+                                    </MenuItem.ItemContainerStyle>
+                                </MenuItem>
+                                <Separator/>
+
+                                <MenuItem Header="Edit..." 
+                              Command="{Binding PlacementTarget.Tag.EditSongCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" 
+                              CommandParameter="{Binding}"/>
+                                <MenuItem Header="Delete" 
+                              Command="{Binding PlacementTarget.Tag.DeleteSongCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" 
+                              CommandParameter="{Binding}"/>
+                            </ContextMenu>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </DataGrid.RowStyle>
+
             <DataGrid.Columns>
                 <DataGridTemplateColumn Header="" Width="50">
                     <DataGridTemplateColumn.CellTemplate>
@@ -50,7 +79,6 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-
                 <DataGridTextColumn Header="Title" Binding="{Binding Title}" Width="2*"/>
                 <DataGridTextColumn Header="Artist" Binding="{Binding Artist}" Width="2*"/>
                 <DataGridTextColumn Header="Album" Binding="{Binding Album}" Width="2*"/>

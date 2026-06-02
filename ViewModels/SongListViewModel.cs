@@ -11,11 +11,15 @@ namespace GLab6.ViewModels
     {
         private ObservableCollection<Song> _songs;
 
+        private ObservableCollection<Playlist> _playlists;
         public ICollectionView FilteredSongs { get; }
 
         private string _searchText = string.Empty;
 
+        private Song? _selectedSong;
         public ICommand ClearSearchCommand { get; }
+
+        public ICommand AddToPlaylistCommand { get; }
         public string SearchText
         {
             get => _searchText;
@@ -27,15 +31,29 @@ namespace GLab6.ViewModels
                 }
             }
         }
+
+        public ObservableCollection<Playlist> Playlists
+        {
+            get => _playlists;
+            set => SetProperty(ref _playlists, value);
+        }
         public ObservableCollection<Song> Songs
         {
             get => _songs;
             set => SetProperty(ref _songs, value);
         }
+        public Song? SelectedSong
+        {
+            get => _selectedSong;
+            set => SetProperty(ref _selectedSong, value);
+        }
 
-        public SongListViewModel(ObservableCollection<Song> songs)
+        public SongListViewModel(ObservableCollection<Song> songs, ObservableCollection<Playlist> playlists, ICommand addToPlaylistCommand)
         {
             _songs = songs;
+            Playlists = playlists;
+
+            AddToPlaylistCommand = addToPlaylistCommand;
 
             FilteredSongs = CollectionViewSource.GetDefaultView(_songs);
             FilteredSongs.Filter = FilterSongs;

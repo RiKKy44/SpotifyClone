@@ -11,7 +11,6 @@ namespace GLab6
     public partial class MainWindow : Window
     {
 
-
         public MainWindow()
         {
             InitializeComponent();

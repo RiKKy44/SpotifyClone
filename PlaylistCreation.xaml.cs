@@ -1,52 +1,26 @@
-﻿using Microsoft.Win32;
-using System;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.IO;
+﻿using System.Windows;
+using GLab6.ViewModels;
+
 namespace GLab6
 {
     public partial class PlaylistCreation : Window
-    {        
-        public string PlaylistName => PlaylistNameTextBox.Text;
-        public byte[]? CoverData { get; private set; }
-        public ImageSource CoverImage => servicePhoto.Source;
-
-        public PlaylistCreation()
+    {
+        public PlaylistCreation(PlaylistEditViewModel viewModel)
         {
             InitializeComponent();
-        }
+            DataContext = viewModel;
 
-        private void Browse(object sender, RoutedEventArgs e)
-        {
-            OpenFileDialog op = new OpenFileDialog
+            viewModel.CloseRequested += (result) =>
             {
-                Title = "Select a picture",
-                Filter = "Image Files|*.jpg;*.jpeg;*.png"
+                if (result.HasValue)
+                {
+                    this.DialogResult = result;
+                }
+                else
+                {
+                    this.Close();
+                }
             };
-
-            if (op.ShowDialog() == true)
-            {
-                CoverData = File.ReadAllBytes(op.FileName);
-
-                servicePhoto.Source = new BitmapImage(new Uri(op.FileName));
-            }
-        }
-
-        private void PlaylistNameTextBox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            SaveBtn.IsEnabled = !string.IsNullOrWhiteSpace(PlaylistNameTextBox.Text);
-        }
-
-        private void Cancel(object sender, RoutedEventArgs e)
-        {
-            DialogResult = false;
-        }
-
-        private void Save(object sender, RoutedEventArgs e)
-        {
-            DialogResult = true;
         }
     }
 }

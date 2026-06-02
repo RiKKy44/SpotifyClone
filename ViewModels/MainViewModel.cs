@@ -7,7 +7,8 @@ using System.Linq;
 using System.IO;
 using Microsoft.Win32;
 using GLab6.Views;
-
+using System;
+using System.Buffers;
 namespace GLab6.ViewModels
 {
     public class MainViewModel : BaseViewModel
@@ -17,8 +18,7 @@ namespace GLab6.ViewModels
         private ObservableCollection<Song> _songs = new ObservableCollection<Song>();
         private ObservableCollection<Playlist> _playlists = new ObservableCollection<Playlist>();
         private Playlist? _selectedPlaylist;
-        
-        public ICommand ImportSongsCommand { get; }
+      
 
         public BaseViewModel CurrentPage
         {
@@ -44,10 +44,7 @@ namespace GLab6.ViewModels
             get => _selectedPlaylist;
             set
             {
-                if (SetProperty(ref _selectedPlaylist, value) && value != null)
-                {
-                    CurrentPage = new PlaylistViewModel(value, Songs);
-                }
+                SetProperty(ref _selectedPlaylist, value);
             }
         }
 
@@ -62,12 +59,20 @@ namespace GLab6.ViewModels
             get => _playlists;
             set => SetProperty(ref _playlists, value);
         }
-
+        public ICommand ImportSongsCommand { get; }
         public ICommand NewLibraryCommand { get; }
         public ICommand OpenLibraryCommand { get; }
         public ICommand SaveLibraryCommand { get; }
         public ICommand NewPlaylistCommand { get; }
 
+        public ICommand RenamePlaylistCommand { get; }
+        public ICommand DeletePlaylistCommand { get; }
+        public ICommand AddSongToPlaylistCommand { get; }
+
+        public ICommand ShowPlaylistCommand { get; }
+        public ICommand ShowAllSongsCommand { get; }
+        public ICommand EditSongCommand { get; }
+        public ICommand DeleteSongCommand { get; }
         public MainViewModel()
         {
             CurrentPage = new WelcomeViewModel(OnLibraryOpened, OnLibraryCreated);
@@ -79,6 +84,24 @@ namespace GLab6.ViewModels
             NewPlaylistCommand = new RelayCommand(NewPlaylist, () => IsLibraryLoaded);
 
             ImportSongsCommand = new RelayCommand(ImportSongs, () => IsLibraryLoaded);
+
+            RenamePlaylistCommand = new RelayCommand(param => RenamePlaylist(param as Playlist), _ => IsLibraryLoaded);
+            DeletePlaylistCommand = new RelayCommand(param => DeletePlaylist(param as Playlist), _ => IsLibraryLoaded);
+            AddSongToPlaylistCommand = new RelayCommand(param => AddSongToPlaylist(param as Playlist), _ => IsLibraryLoaded);
+            
+            EditSongCommand = new RelayCommand(param => EditSong(param as Song), _ => IsLibraryLoaded);
+            
+            DeleteSongCommand = new RelayCommand(param => DeleteSong(param as Song), _ => IsLibraryLoaded);
+            ShowPlaylistCommand = new RelayCommand(param =>
+            {
+                if (param is Playlist p)
+                {
+                    SelectedPlaylist = p; 
+                    CurrentPage = new PlaylistViewModel(p, Songs, SaveLibrary); 
+                }
+            }, _ => IsLibraryLoaded);
+
+            ShowAllSongsCommand = new RelayCommand(ShowAllSongs, () => IsLibraryLoaded);
         }
 
         private void OnLibraryCreated(string filePath)
@@ -99,7 +122,7 @@ namespace GLab6.ViewModels
             Playlists = new ObservableCollection<Playlist>(library.Playlists);
             IsLibraryLoaded = true;
 
-            CurrentPage = new SongListViewModel(Songs);
+            CurrentPage = new SongListViewModel(Songs, Playlists, AddSongToPlaylistCommand);
         }
 
         public void SaveLibrary()
@@ -115,16 +138,127 @@ namespace GLab6.ViewModels
 
         private void NewPlaylist()
         {
-            PlaylistCreation win2 = new PlaylistCreation { Owner = System.Windows.Application.Current.MainWindow };
-            if (win2.ShowDialog() == true)
+            var vm = new PlaylistEditViewModel();
+            PlaylistCreation win = new PlaylistCreation(vm) { Owner = System.Windows.Application.Current.MainWindow };
+            if(win.ShowDialog() == true)
             {
-                Playlists.Add(new Playlist
-                {
-                    Name = win2.PlaylistName,
-                    CoverData = win2.CoverData 
-                });
+                Playlists.Add(new Playlist { Name = vm.PlaylistName, CoverData = vm.CoverData });
                 SaveLibrary();
             }
+        }
+
+        private void RenamePlaylist(Playlist? playlist)
+        {
+            if (playlist == null) return;
+
+            var vm = new PlaylistEditViewModel(playlist.Name, playlist.CoverData);
+
+            PlaylistCreation win = new PlaylistCreation(vm);
+
+            if (win.ShowDialog() == true)
+            {
+                int index = Playlists.IndexOf(playlist);
+
+                if (index >= 0)
+                {
+                    bool isCurrentlySelected = (CurrentPage is PlaylistViewModel pvm && pvm.Name == playlist.Name);
+
+                    Playlists.RemoveAt(index);
+                    playlist.Name = vm.PlaylistName;
+                    playlist.CoverData = vm.CoverData;
+                    Playlists.Insert(index, playlist);
+                    if (isCurrentlySelected)
+                    {
+                        SelectedPlaylist = playlist;
+                        CurrentPage = new PlaylistViewModel(playlist, Songs, SaveLibrary);
+                    }
+                }
+                SaveLibrary();
+            }
+        }
+
+
+        private void DeletePlaylist(Playlist? playlist)
+        {
+            if (playlist == null) return;
+            Playlists.Remove(playlist);
+            CurrentPage = new SongListViewModel(Songs, Playlists, AddSongToPlaylistCommand);
+            SaveLibrary();
+        }
+
+
+        private void AddSongToPlaylist(Playlist? playlist)
+        {
+            if (playlist == null)
+            {
+                return;
+            }
+
+            if(CurrentPage is SongListViewModel songListVm && songListVm.SelectedSong != null)
+            {
+                int index = Songs.IndexOf(songListVm.SelectedSong);
+
+                if(index >= 0 && !playlist.SongIds.Contains(songListVm.SelectedSong.Id))
+                {
+                    playlist.SongIds.Add(songListVm.SelectedSong.Id);
+                    SaveLibrary();  
+                }
+            }
+        }
+
+        private void ShowAllSongs()
+        {
+            SelectedPlaylist = null;
+
+            CurrentPage = new SongListViewModel(Songs, Playlists, AddSongToPlaylistCommand);
+        }
+        private void EditSong(Song? song)
+        {
+            if (song == null) return;
+
+            var vm = new SongEditViewModel(song.Title, song.Artist, song.Album, song.Genre, song.Year, song.CoverData);
+            var win = new SongEditWindow(vm);
+
+            if (win.ShowDialog() == true)
+            {
+                int index = Songs.IndexOf(song);
+                if (index >= 0)
+                {
+                    Songs.RemoveAt(index);
+
+                    song.Title = vm.Title;
+                    song.Artist = vm.Artist;
+                    song.Album = vm.Album;
+                    song.Genre = vm.Genre;
+                    song.Year = vm.Year;
+                    song.CoverData = vm.CoverData;
+
+                    Songs.Insert(index, song);
+
+                    if (SelectedPlaylist != null) CurrentPage = new PlaylistViewModel(SelectedPlaylist, Songs, SaveLibrary);
+                    else CurrentPage = new SongListViewModel(Songs, Playlists, AddSongToPlaylistCommand);
+                }
+                SaveLibrary();
+            }
+        }
+        private void DeleteSong(Song? song)
+        {
+            if (song == null) return;
+
+            foreach (var playlist in Playlists)
+            {
+                if (playlist.SongIds.Contains(song.Id))
+                {
+                    playlist.SongIds.Remove(song.Id);
+                }
+            }
+
+            Songs.Remove(song);
+
+            if (SelectedPlaylist != null) CurrentPage = new PlaylistViewModel(SelectedPlaylist, Songs, SaveLibrary);
+            else CurrentPage = new SongListViewModel(Songs, Playlists, AddSongToPlaylistCommand);
+
+            SaveLibrary();
         }
         private void ImportSongs()
         {
@@ -161,7 +295,7 @@ namespace GLab6.ViewModels
                         }
                         Songs.Add(song);
                     }
-                    catch(Exception ex)
+                    catch
                     {
 
                     }
