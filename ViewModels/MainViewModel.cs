@@ -16,8 +16,7 @@ namespace GLab6.ViewModels
         private bool _isLibraryLoaded;
         private ObservableCollection<Song> _songs = new ObservableCollection<Song>();
         private ObservableCollection<Playlist> _playlists = new ObservableCollection<Playlist>();
-
-        private Playlist _selectedPlaylist;
+        private Playlist? _selectedPlaylist;
         
         public ICommand ImportSongsCommand { get; }
 
@@ -27,23 +26,29 @@ namespace GLab6.ViewModels
             set => SetProperty(ref _currentPage, value);
         }
 
-        public Playlist SelectedPlaylist
-        {
-            get => _selectedPlaylist;
-            set
-            {
-                if (_selectedPlaylist != null)
-                {
-                    _currentPage = new SongListViewModel(_selectedPlaylist);
-                }
-                SetProperty(ref _selectedPlaylist, value);
-            }
-        }
 
         public bool IsLibraryLoaded
         {
             get => _isLibraryLoaded;
-            set => SetProperty(ref _isLibraryLoaded, value);
+            set
+            {
+                if(SetProperty(ref _isLibraryLoaded, value))
+                {
+                    CommandManager.InvalidateRequerySuggested();
+                }
+            }
+        }
+
+        public Playlist? SelectedPlaylist
+        {
+            get => _selectedPlaylist;
+            set
+            {
+                if (SetProperty(ref _selectedPlaylist, value) && value != null)
+                {
+                    CurrentPage = new PlaylistViewModel(value, Songs);
+                }
+            }
         }
 
         public ObservableCollection<Song> Songs

@@ -23,6 +23,9 @@
         <DataTemplate DataType="{x:Type vm:SongListViewModel}">
             <views:SongListView />
         </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:PlaylistViewModel}">
+            <views:PlaylistView />
+        </DataTemplate>
     </Window.Resources>
 
     <DockPanel>
@@ -75,7 +78,9 @@
                     <TextBlock Text="PLAYLISTS" Foreground="White" FontWeight="Bold" VerticalAlignment="Center" FontSize="14"/>
                 </DockPanel>
 
-                <ListBox Grid.Row="1" ItemsSource="{Binding Playlists}" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <ListBox Grid.Row="1" ItemsSource="{Binding Playlists}" 
+                    SelectedItem="{Binding SelectedPlaylist, UpdateSourceTrigger=PropertyChanged}"
+                    Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                     <ListBox.ItemContainerStyle>
                         <Style TargetType="ListBoxItem">
                             <Setter Property="Padding" Value="10,5"/>
