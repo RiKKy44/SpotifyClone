@@ -39,8 +39,6 @@ namespace GLab6.ViewModels
 
             PlaylistSongs = new ObservableCollection<Song>(filtered);
 
-            PlayCommand = new RelayCommand(PlayPlaylist, () => PlaylistSongs.Count > 0);
-
             RemoveSongCommand = new RelayCommand(RemoveSong, () => SelectedSong != null);
 
             MoveUpCommand = new RelayCommand(MoveUp, () => SelectedSong != null);
@@ -53,12 +51,6 @@ namespace GLab6.ViewModels
                 player.PlayQueue(queue, 0);
             }, () => PlaylistSongs.Count > 0);
         }
-
-
-
-        private void PlayPlaylist()
-        {
-        }   
 
         private void RemoveSong()
         {

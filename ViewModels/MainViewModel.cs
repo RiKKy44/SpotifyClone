@@ -3,12 +3,8 @@ using System.Windows.Input;
 using GLab6.Commands;
 using GLab6.Models;
 using GLab6.Services;
-using System.Linq;
 using System.IO;
 using Microsoft.Win32;
-using GLab6.Views;
-using System;
-using System.Buffers;
 namespace GLab6.ViewModels
 {
     public class MainViewModel : BaseViewModel
