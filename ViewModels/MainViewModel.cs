@@ -18,7 +18,9 @@ namespace GLab6.ViewModels
         private ObservableCollection<Song> _songs = new ObservableCollection<Song>();
         private ObservableCollection<Playlist> _playlists = new ObservableCollection<Playlist>();
         private Playlist? _selectedPlaylist;
-      
+
+        public PlayerViewModel Player { get; }
+        public ICommand PlaySongCommand { get; }
 
         public BaseViewModel CurrentPage
         {
@@ -78,8 +80,8 @@ namespace GLab6.ViewModels
             CurrentPage = new WelcomeViewModel(OnLibraryOpened, OnLibraryCreated);
             IsLibraryLoaded = false;
 
-            NewLibraryCommand = new RelayCommand(() => CurrentPage = new WelcomeViewModel(OnLibraryOpened, OnLibraryCreated));
-            OpenLibraryCommand = new RelayCommand(() => CurrentPage = new WelcomeViewModel(OnLibraryOpened, OnLibraryCreated));
+            NewLibraryCommand = new RelayCommand(CreateNewLibrary);
+            OpenLibraryCommand = new RelayCommand(OpenExistingLibrary);
             SaveLibraryCommand = new RelayCommand(SaveLibrary, () => IsLibraryLoaded);
             NewPlaylistCommand = new RelayCommand(NewPlaylist, () => IsLibraryLoaded);
 
@@ -97,11 +99,14 @@ namespace GLab6.ViewModels
                 if (param is Playlist p)
                 {
                     SelectedPlaylist = p; 
-                    CurrentPage = new PlaylistViewModel(p, Songs, SaveLibrary); 
+                    CurrentPage = new PlaylistViewModel(p, Songs, SaveLibrary, Player); 
                 }
             }, _ => IsLibraryLoaded);
 
             ShowAllSongsCommand = new RelayCommand(ShowAllSongs, () => IsLibraryLoaded);
+
+            Player = new PlayerViewModel(new AudioPlayerService());
+            PlaySongCommand = new RelayCommand(param => PlaySong(param as Song), _ => IsLibraryLoaded);
         }
 
         private void OnLibraryCreated(string filePath)
@@ -170,7 +175,7 @@ namespace GLab6.ViewModels
                     if (isCurrentlySelected)
                     {
                         SelectedPlaylist = playlist;
-                        CurrentPage = new PlaylistViewModel(playlist, Songs, SaveLibrary);
+                        CurrentPage = new PlaylistViewModel(playlist, Songs, SaveLibrary, Player);
                     }
                 }
                 SaveLibrary();
@@ -235,7 +240,7 @@ namespace GLab6.ViewModels
 
                     Songs.Insert(index, song);
 
-                    if (SelectedPlaylist != null) CurrentPage = new PlaylistViewModel(SelectedPlaylist, Songs, SaveLibrary);
+                    if (SelectedPlaylist != null) CurrentPage = new PlaylistViewModel(SelectedPlaylist, Songs, SaveLibrary, Player);
                     else CurrentPage = new SongListViewModel(Songs, Playlists, AddSongToPlaylistCommand);
                 }
                 SaveLibrary();
@@ -255,7 +260,7 @@ namespace GLab6.ViewModels
 
             Songs.Remove(song);
 
-            if (SelectedPlaylist != null) CurrentPage = new PlaylistViewModel(SelectedPlaylist, Songs, SaveLibrary);
+            if (SelectedPlaylist != null) CurrentPage = new PlaylistViewModel(SelectedPlaylist, Songs, SaveLibrary,Player);
             else CurrentPage = new SongListViewModel(Songs, Playlists, AddSongToPlaylistCommand);
 
             SaveLibrary();
@@ -303,6 +308,48 @@ namespace GLab6.ViewModels
                 }
                 SaveLibrary();
             }
+        }
+        private void CreateNewLibrary()
+        {
+            SaveFileDialog sfd = new SaveFileDialog
+            {
+                Filter = "Musica Library (*.musica)|*.musica|JSON Files (*.json)|*.json",
+                Title = "Create New Music Library"
+            };
+
+            if (sfd.ShowDialog() == true)
+            {
+                OnLibraryCreated(sfd.FileName);
+            }
+        }
+
+        private void OpenExistingLibrary()
+        {
+            OpenFileDialog ofd = new OpenFileDialog
+            {
+                Filter = "Musica Library (*.musica)|*.musica|JSON Files (*.json)|*.json",
+                Title = "Open Music Library"
+            };
+
+            if (ofd.ShowDialog() == true)
+            {
+                OnLibraryOpened(ofd.FileName);
+            }
+        }
+        private void PlaySong(Song? song)
+        {
+            if (song == null) return;
+
+            List<Song> queue;
+
+            if (CurrentPage is PlaylistViewModel pvm)
+            {
+                queue = new List<Song>(pvm.PlaylistSongs);
+            }
+            else queue = new List<Song>(Songs);
+
+            int index = queue.IndexOf(song);
+            Player.PlayQueue(queue, index);
         }
     }
 }

@@ -30,7 +30,7 @@ namespace GLab6.ViewModels
         public ICommand MoveUpCommand { get; }
         public ICommand MoveDownCommand { get; }
 
-        public PlaylistViewModel(Playlist playlist, ObservableCollection<Song> allSongs, Action saveAction)
+        public PlaylistViewModel(Playlist playlist, ObservableCollection<Song> allSongs, Action saveAction, PlayerViewModel player)
         {
             _playlist = playlist;
             _saveAction = saveAction;
@@ -46,6 +46,12 @@ namespace GLab6.ViewModels
             MoveUpCommand = new RelayCommand(MoveUp, () => SelectedSong != null);
 
             MoveDownCommand = new RelayCommand(MoveDown, () => SelectedSong != null);
+
+            PlayCommand = new RelayCommand(() =>
+            {
+                var queue = new List<Song>(PlaylistSongs);
+                player.PlayQueue(queue, 0);
+            }, () => PlaylistSongs.Count > 0);
         }
 
 

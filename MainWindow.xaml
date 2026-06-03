@@ -33,18 +33,20 @@
             <MenuItem Header="Library">
                 <MenuItem Header="New..." Command="{Binding NewLibraryCommand}"/>
                 <MenuItem Header="Open..." Command="{Binding OpenLibraryCommand}"/>
-                <MenuItem Header="Save" Command="{Binding SaveLibraryCommand}" InputGestureText="Ctrl+S"/>
             </MenuItem>
+
             <MenuItem Header="Songs">
                 <MenuItem Header="Import..." Command="{Binding ImportSongsCommand}" IsEnabled="{Binding IsLibraryLoaded}"/>
             </MenuItem>
+
             <MenuItem Header="Playlist">
-                <MenuItem Header="New..." Command="{Binding NewPlaylistCommand}"/>
+                <MenuItem Header="New..." Command="{Binding NewPlaylistCommand}" IsEnabled="{Binding IsLibraryLoaded}"/>
             </MenuItem>
         </Menu>
 
-        <Grid DockPanel.Dock="Bottom" Height="56" Background="{StaticResource PrimaryBrush}"
-              Visibility="{Binding IsLibraryLoaded, Converter={StaticResource BoolToVis}}">
+        <Grid DockPanel.Dock="Bottom" Height="56" 
+            Visibility="{Binding IsLibraryLoaded, Converter={StaticResource BoolToVis}}">
+            <views:NowPlayingBar DataContext="{Binding Player}" />
         </Grid>
 
         <Grid>
